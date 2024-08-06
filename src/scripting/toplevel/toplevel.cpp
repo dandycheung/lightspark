@@ -37,6 +37,7 @@
 #include "scripting/abc.h"
 #include "scripting/toplevel/toplevel.h"
 #include "scripting/flash/events/flashevents.h"
+#include "scripting/flash/display/Stage.h"
 #include "swf.h"
 #include "compat.h"
 #include "scripting/class.h"
@@ -1002,7 +1003,8 @@ ASFUNCTIONBODY_ATOM(lightspark,AVM1_ASSetPropFlags)
 	{
 		for (uint32_t i = 0; i < o->numVariables(); i++)
 		{
-			nameIDlist.push_back(o->getNameAt(i));
+			bool dummy;
+			nameIDlist.push_back(o->getNameAt(i,dummy));
 		}
 	}
 	else

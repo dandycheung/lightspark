@@ -8040,3 +8040,105 @@ void ABCVm::abc_hasnext2_iftrue(call_context* context)
 		++(context->exec_pos);
 }
 
+void ABCVm::abc_getSlotFromScopeObject(call_context* context)
+{
+	preloadedcodedata* instrptr = context->exec_pos++;
+	uint32_t t = instrptr->arg1_uint;
+	uint32_t tslot = instrptr->arg2_uint;
+	assert_and_throw(context->curr_scope_stack > (uint32_t)t);
+	ASObject* obj = asAtomHandler::getObjectNoCheck(context->scope_stack[t]);
+	asAtom res = obj->getSlotNoCheck(tslot);
+	LOG_CALL("getSlotFromScopeObject " << t << " " << tslot<<" "<< asAtomHandler::toDebugString(res) << " "<< obj->toDebugString());
+	ASATOM_INCREF(res);
+	RUNTIME_STACK_PUSH(context,res);
+}
+void ABCVm::abc_getSlotFromScopeObject_localresult(call_context* context)
+{
+	preloadedcodedata* instrptr = context->exec_pos++;
+	uint32_t t = instrptr->arg1_uint;
+	uint32_t tslot = instrptr->arg2_uint;
+	assert_and_throw(context->curr_scope_stack > (uint32_t)t);
+	ASObject* obj = asAtomHandler::getObjectNoCheck(context->scope_stack[t]);
+	asAtom res = obj->getSlotNoCheck(tslot);
+	LOG_CALL("getSlotFromScopeObject_l " << t << " " << tslot<<" "<< asAtomHandler::toDebugString(res) << " "<< obj->toDebugString()<<" "<<instrptr->local3.pos);
+	if (res.uintval != CONTEXT_GETLOCAL(context,instrptr->local3.pos).uintval)
+	{
+		ASATOM_INCREF(res);
+		replacelocalresult(context,instrptr->local3.pos,res);
+	}
+}
+void ABCVm::abc_nextname_constant_constant(call_context* context)
+{
+	LOG_CALL("nextname_cc");
+	asAtom ret=asAtomHandler::invalidAtom;
+	asAtomHandler::toObject(*context->exec_pos->arg1_constant,context->worker)->nextName(ret,asAtomHandler::toUInt(*context->exec_pos->arg2_constant));
+	RUNTIME_STACK_PUSH(context,ret);
+	++(context->exec_pos);
+}
+void ABCVm::abc_nextname_local_constant(call_context* context)
+{
+	LOG_CALL("nextname_lc");
+	asAtom ret=asAtomHandler::invalidAtom;
+	asAtomHandler::toObject(CONTEXT_GETLOCAL(context,context->exec_pos->local_pos1),context->worker)->nextName(ret,asAtomHandler::toUInt(*context->exec_pos->arg2_constant));
+	RUNTIME_STACK_PUSH(context,ret);
+	++(context->exec_pos);
+}
+void ABCVm::abc_nextname_constant_local(call_context* context)
+{
+	LOG_CALL("nextname_cl");
+	asAtom ret=asAtomHandler::invalidAtom;
+	asAtomHandler::toObject(*context->exec_pos->arg1_constant,context->worker)->nextName(ret,asAtomHandler::toUInt(CONTEXT_GETLOCAL(context,context->exec_pos->local_pos2)));
+	ASATOM_INCREF(ret);
+	RUNTIME_STACK_PUSH(context,ret);
+	++(context->exec_pos);
+}
+void ABCVm::abc_nextname_local_local(call_context* context)
+{
+	LOG_CALL("nextname_ll");
+	asAtom ret=asAtomHandler::invalidAtom;
+	asAtomHandler::toObject(CONTEXT_GETLOCAL(context,context->exec_pos->local_pos1),context->worker)->nextName(ret,asAtomHandler::toUInt(CONTEXT_GETLOCAL(context,context->exec_pos->local_pos2)));
+	RUNTIME_STACK_PUSH(context,ret);
+	++(context->exec_pos);
+}
+void ABCVm::abc_nextname_constant_constant_localresult(call_context* context)
+{
+	LOG_CALL("nextname_ccl");
+	asAtom ret=asAtomHandler::invalidAtom;
+	asAtomHandler::toObject(*context->exec_pos->arg1_constant,context->worker)->nextName(ret,asAtomHandler::toUInt(*context->exec_pos->arg2_constant));
+	ASATOM_INCREF(ret);
+	replacelocalresult(context,context->exec_pos->local3.pos,ret);
+	++(context->exec_pos);
+}
+void ABCVm::abc_nextname_local_constant_localresult(call_context* context)
+{
+	LOG_CALL("nextname_lcl");
+	asAtom ret=asAtomHandler::invalidAtom;
+	asAtomHandler::toObject(CONTEXT_GETLOCAL(context,context->exec_pos->local_pos1),context->worker)->nextName(ret,asAtomHandler::toUInt(*context->exec_pos->arg2_constant));
+	replacelocalresult(context,context->exec_pos->local3.pos,ret);
+	++(context->exec_pos);
+}
+void ABCVm::abc_nextname_constant_local_localresult(call_context* context)
+{
+	LOG_CALL("nextname_cll");
+	asAtom ret=asAtomHandler::invalidAtom;
+	asAtomHandler::toObject(*context->exec_pos->arg1_constant,context->worker)->nextName(ret,asAtomHandler::toUInt(CONTEXT_GETLOCAL(context,context->exec_pos->local_pos2)));
+	replacelocalresult(context,context->exec_pos->local3.pos,ret);
+	++(context->exec_pos);
+}
+void ABCVm::abc_nextname_local_local_localresult(call_context* context)
+{
+	LOG_CALL("nextname_lll");
+	asAtom ret=asAtomHandler::invalidAtom;
+	asAtomHandler::toObject(CONTEXT_GETLOCAL(context,context->exec_pos->local_pos1),context->worker)->nextName(ret,asAtomHandler::toUInt(CONTEXT_GETLOCAL(context,context->exec_pos->local_pos2)));
+	replacelocalresult(context,context->exec_pos->local3.pos,ret);
+	++(context->exec_pos);
+}
+void ABCVm::abc_newobject_noargs_localresult(call_context* context)
+{
+	context->explicitConstruction = true;
+	asAtom ret=asAtomHandler::fromObjectNoPrimitive(new_asobject(context->worker));
+	LOG_CALL("newObject_noargs_l " << asAtomHandler::toDebugString(ret));
+	replacelocalresult(context,context->exec_pos->local3.pos,ret);
+	context->explicitConstruction = false;
+	++(context->exec_pos);
+}

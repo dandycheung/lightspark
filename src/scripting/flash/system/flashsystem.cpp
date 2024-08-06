@@ -23,6 +23,7 @@
 #include "scripting/flash/system/messagechannel.h"
 #include "scripting/flash/errors/flasherrors.h"
 #include "scripting/flash/display/Loader.h"
+#include "scripting/flash/display/Stage.h"
 #include "scripting/abc.h"
 #include "scripting/argconv.h"
 #include "compat.h"
@@ -1041,7 +1042,6 @@ ASWorker::ASWorker(SystemState* s):
 	// TODO: it seems that AIR applications have a higher default value for max_recursion
 	// I haven't found any documentation about that, so we just set it to a value that seems to work...
 	limits.max_recursion = s->flashMode == SystemState::AIR ? 2048 : 256;
-	limits.max_recursion = 256;
 	limits.script_timeout = 20;
 	stacktrace = new stacktrace_entry[limits.max_recursion];
 	gettimeofday(&last_garbagecollection, nullptr);
@@ -1525,7 +1525,7 @@ WorkerDomain::WorkerDomain(ASWorker* wrk, Class_base* c):
 	RootMovieClip* root = wrk->rootClip.getPtr();
 	Template<Vector>::getInstanceS(wrk,v,root,Class<ASWorker>::getClass(getSystemState()),NullRef);
 	workerlist = _R<Vector>(asAtomHandler::as<Vector>(v));
-	workerSharedObject = _MR(Class<ASObject>::getInstanceS(wrk));
+	workerSharedObject = _MR(new_asobject(wrk));
 }
 
 void WorkerDomain::finalize()

@@ -22,6 +22,7 @@
 #include "scripting/flash/text/flashtext.h"
 #include "scripting/flash/geom/Rectangle.h"
 #include "scripting/flash/display/RootMovieClip.h"
+#include "scripting/flash/display/Stage.h"
 #include "scripting/flash/ui/keycodes.h"
 #include "scripting/class.h"
 #include "compat.h"
@@ -2343,7 +2344,7 @@ ASFUNCTIONBODY_ATOM(StyleSheet,getStyle)
 	{
 		// Tested behaviour is to return an empty ASObject
 		// instead of Null as is said in the documentation
-		ret = asAtomHandler::fromObject(Class<ASObject>::getInstanceS(wrk));
+		ret = asAtomHandler::fromObject(new_asobject(wrk));
 	}
 }
 
